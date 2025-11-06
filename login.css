@@ -1,0 +1,355 @@
+/**
+ * Login.css - Lavandería Roeloss
+ * Estilos específicos para la página de login
+ */
+
+/* ============================================
+   VARIABLES CSS PARA LOGIN
+   ============================================ */
+:root {
+    --azul-oscuro: #1e3a8a;
+    --azul-medio: #2563eb;
+    --azul-claro: #93c5fd;
+    --rojo: #dc2626;
+    --verde: #16a34a;
+    --gris-claro: #f3f4f6;
+    --gris-texto: #4b5563;
+    --sombra: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --radio: 14px;
+    --fuente-principal: "Poppins", "Segoe UI", sans-serif;
+}
+
+/* ============================================
+   LAYOUT DEL LOGIN
+   ============================================ */
+body {
+    font-family: var(--fuente-principal);
+    background-color: var(--gris-claro);
+    color: var(--gris-texto);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================
+   FONDO ANIMADO
+   ============================================ */
+.fondo-ilustrado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 20%, rgba(147,197,253,0.25), transparent 70%),
+                radial-gradient(circle at 80% 80%, rgba(30,58,138,0.15), transparent 60%);
+}
+
+/* ============================================
+   CONTENEDOR PRINCIPAL DEL LOGIN
+   ============================================ */
+.login-container {
+    background: white;
+    border-radius: var(--radio);
+    padding: 40px 50px;
+    box-shadow: var(--sombra);
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+}
+
+/* ============================================
+   HEADER DEL LOGIN
+   ============================================ */
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-medio));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+h1 {
+    color: var(--azul-oscuro);
+    font-size: 1.8rem;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+}
+
+.subtitle {
+    color: var(--gris-texto);
+    font-size: 0.95rem;
+    margin-bottom: 30px;
+}
+
+/* ============================================
+   FORMULARIO
+   ============================================ */
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--gris-texto);
+    font-size: 0.9rem;
+}
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: #fafafa;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    outline: none;
+    border-color: var(--azul-medio);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ============================================
+   INPUT CON ICONO DE CONTRASEÑA
+   ============================================ */
+.password-container {
+    position: relative;
+}
+
+.password-container input {
+    padding-right: 45px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--gris-texto);
+    user-select: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.toggle-password:hover {
+    color: var(--azul-medio);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.toggle-password svg {
+    transition: transform 0.2s ease;
+}
+
+.toggle-password:active svg {
+    transform: scale(0.95);
+}
+
+/* ============================================
+   MENSAJES DE ERROR
+   ============================================ */
+.error-message {
+    color: var(--rojo);
+    font-size: 13px;
+    margin-top: 5px;
+    display: none;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border-radius: 6px;
+    border-left: 3px solid var(--rojo);
+}
+
+.error-message.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+/* ============================================
+   BOTÓN DE LOGIN
+   ============================================ */
+.btn-login {
+    width: 100%;
+    background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-medio));
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+.btn-login:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ============================================
+   SPINNER DE CARGA
+   ============================================ */
+.spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   MENSAJES GLOBALES
+   ============================================ */
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    display: none;
+}
+
+.alert.success {
+    background: #f0fdf4;
+    color: var(--verde);
+    border: 1px solid #bbf7d0;
+}
+
+.alert.error {
+    background: #fef2f2;
+    color: var(--rojo);
+    border: 1px solid #fecaca;
+}
+
+.alert.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+/* ============================================
+   PARTÍCULAS DECORATIVAS
+   ============================================ */
+.particle {
+    position: absolute;
+    background: var(--azul-claro);
+    border-radius: 50%;
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+}
+
+.particle:nth-child(1) { 
+    width: 4px; 
+    height: 4px; 
+    left: 10%; 
+    animation-delay: 0s; 
+}
+
+.particle:nth-child(2) { 
+    width: 6px; 
+    height: 6px; 
+    left: 20%; 
+    animation-delay: 2s; 
+}
+
+.particle:nth-child(3) { 
+    width: 3px; 
+    height: 3px; 
+    left: 80%; 
+    animation-delay: 4s; 
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 480px) {
+    .login-container {
+        margin: 20px;
+        padding: 30px 25px;
+    }
+
+    .logo {
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .subtitle {
+        font-size: 0.9rem;
+    }
+    
+    input[type="text"], input[type="password"] {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+    
+    .btn-login {
+        padding: 12px;
+        font-size: 15px;
+    }
+}

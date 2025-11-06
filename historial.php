@@ -1,67 +1,82 @@
 <?php
 require_once 'config.php';
-$pagina_actual = basename($_SERVER['PHP_SELF']);
+require_once 'auth.php';
 
+// Consulta de todos los pedidos con los datos del cliente y servicio
 try {
-    // Consulta completa de pedidos con sus relaciones
     $sql = "SELECT 
-                p.pk_pedido AS id,
-                CONCAT(per.nombres, ' ', per.aPaterno, ' ', per.aMaterno) AS cliente,
+                p.pk_pedido AS id_pedido,
+                per.nombres,
+                per.aPaterno,
+                per.aMaterno,
                 s.nombreServicioRopa AS tipo_ropa,
-                CONCAT(p.totalPedido, ' KG') AS peso,
-                p.estatusPedido AS estatus,
-                p.tipoEntrega AS servicio,
-                CONCAT('$', p.totalPedido) AS total,
-                DATE_FORMAT(p.fechaDeRecibo, '%d/%m/%y') AS fecha
+                p.tipoEntrega,
+                p.estatusPedido,
+                p.totalPedido,
+                DATE_FORMAT(p.fechaDeRecibo, '%d/%m/%Y %H:%i') AS fecha
             FROM pedidos p
             INNER JOIN clientes c ON p.fk_cliente = c.pk_cliente
             INNER JOIN personas per ON c.fk_persona = per.pk_persona
             INNER JOIN serviciosropa s ON p.fk_servicioRopa = s.pk_servicioRopa
             ORDER BY p.pk_pedido DESC";
-
     $stmt = $pdo->query($sql);
     $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error al consultar los pedidos: " . $e->getMessage());
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Historial de registros</title>
-    <link rel="stylesheet" href="css/estilo.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Historial de Pedidos</title>
+<link rel="stylesheet" href="estilos.css">
 </head>
 <body>
 
 <header class="navbar">
     <div class="nav-left">
-        <a href="index.php">
-            <img src="img/logo.png" alt="Logo" class="logo">
-        </a>
-        <a href="nuevo_cliente.php" class="<?= $pagina_actual == 'nuevo_cliente.php' ? 'active' : '' ?>">Registrar nuevo cliente</a>
-        <a href="historial.php" class="<?= $pagina_actual == 'historial.php' ? 'active' : '' ?>">Historial de registros</a>
-        <a href="nuevo_pedido.php" class="<?= $pagina_actual == 'nuevo_pedido.php' ? 'active' : '' ?>">Crear nuevo pedido</a>
+        <a href="index.php"><img src="img/logo.png" alt="Logo" class="logo"></a>
+        <a href="nuevo_cliente.php">Registrar nuevo cliente</a>
+        <a href="historial.php" class="active">Historial de registros</a>
+        <a href="nuevo_pedido.php">Crear nuevo pedido</a>
     </div>
     <div class="nav-right">
-        <button class="btn-cerrar">Cerrar sesión</button>
+        <div class="user-info">
+            <div class="user-icon">
+                <?= strtoupper(substr($_SESSION['usuario_nombre'] ?? 'U', 0, 1)) ?>
+            </div>
+            <span class="user-name">
+                <?= htmlspecialchars($_SESSION['usuario_nombre_completo'] ?? $_SESSION['usuario_nombre']) ?>
+            </span>
+        </div>
+        <button class="btn-cerrar" onclick="cerrarSesion()">
+            <span class="logout-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16,17 21,12 16,7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </span>
+            Cerrar sesión
+        </button>
     </div>
 </header>
 
-<main class="contenedor-historial">
-    <h1>Historial de registros</h1>
+<main>
+    <h1>Historial de pedidos</h1>
 
     <div class="tabla-container">
         <table>
             <thead>
                 <tr>
-                    <th>Id</th>
+                    <th>ID Pedido</th>
                     <th>Cliente</th>
                     <th>Tipo de ropa</th>
-                    <th>Peso</th>
-                    <th>Estatus</th>
                     <th>Tipo de entrega</th>
+                    <th>Estatus</th>
                     <th>Total</th>
                     <th>Fecha</th>
                     <th>Acciones</th>
@@ -71,33 +86,79 @@ try {
                 <?php if (!empty($pedidos)): ?>
                     <?php foreach ($pedidos as $pedido): ?>
                         <tr>
-                            <td><?= htmlspecialchars($pedido['id']) ?></td>
-                            <td><?= htmlspecialchars($pedido['cliente']) ?></td>
+                            <td><?= htmlspecialchars($pedido['id_pedido']) ?></td>
+                            <td><?= htmlspecialchars($pedido['nombres'] . ' ' . $pedido['aPaterno'] . ' ' . $pedido['aMaterno']) ?></td>
                             <td><?= htmlspecialchars($pedido['tipo_ropa']) ?></td>
-                            <td><?= htmlspecialchars($pedido['peso']) ?></td>
-                            <td><?= htmlspecialchars($pedido['estatus']) ?></td>
-                            <td><?= htmlspecialchars($pedido['servicio']) ?></td>
-                            <td><?= htmlspecialchars($pedido['total']) ?></td>
+                            <td><?= htmlspecialchars($pedido['tipoEntrega']) ?></td>
+                            <td>
+                                <?php if (strtolower($pedido['estatusPedido']) === 'pendiente'): ?>
+                                    <span class="estatus-pendiente">Pendiente</span>
+                                <?php elseif (strtolower($pedido['estatusPedido']) === 'entregado'): ?>
+                                    <span class="estatus-entregado">Entregado</span>
+                                <?php else: ?>
+                                    <span class="estatus-pendiente"><?= htmlspecialchars($pedido['estatusPedido']) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td>$<?= number_format($pedido['totalPedido'], 2) ?></td>
                             <td><?= htmlspecialchars($pedido['fecha']) ?></td>
                             <td class="acciones">
-                                <button class="icon-btn" title="Pendiente">⏰</button>
-                                <button class="icon-btn" title="Completar">✔️</button>
-                                <button class="icon-btn" title="Eliminar">🗑️</button>
-                                <button class="icon-btn" title="Editar">✏️</button>
+                                <button title="Editar" onclick="editarPedido(<?= $pedido['id_pedido'] ?>)">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                                <button title="Eliminar" onclick="eliminarPedido(<?= $pedido['id_pedido'] ?>)">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3,6 5,6 21,6"/>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                </button>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="9">No hay pedidos registrados.</td></tr>
+                    <tr>
+                        <td colspan="8" class="sin-registros">No hay pedidos registrados aún.</td>
+                    </tr>
                 <?php endif; ?>
             </tbody>
         </table>
     </div>
-
-    <div class="volver">
-        <a href="index.php" class="btn-aceptar">Volver</a>
-    </div>
 </main>
+
+<script>
+// 🔹 Redirigir a editar pedido
+function editarPedido(id) {
+    window.location.href = "nuevo_pedido.php?id=" + id;
+}
+
+// 🔹 Eliminar pedido
+async function eliminarPedido(id) {
+    if (confirm("¿Desea eliminar el pedido?")) {
+        const resp = await fetch("eliminar_pedido.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "id=" + id
+        });
+        const data = await resp.json();
+        if (data.status === "ok") {
+            alert("¡Pedido eliminado correctamente!");
+            location.reload();
+        } else {
+            alert("Error: " + data.message);
+        }
+    }
+}
+
+function cerrarSesion() {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+        window.location.href = 'logout.php';
+    }
+}
+</script>
 
 </body>
 </html>

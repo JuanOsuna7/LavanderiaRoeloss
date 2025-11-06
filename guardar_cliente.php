@@ -1,96 +1,87 @@
 <?php
 require_once 'config.php';
+require_once 'auth.php';
+header('Content-Type: application/json; charset=utf-8');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['status' => 'error', 'message' => 'Método no permitido']);
+    exit;
+}
 
+try {
     // Recibir datos del formulario
-    $nombre   = trim($_POST['nombre'] ?? '');
-    $paterno  = trim($_POST['apellido_paterno'] ?? '');
-    $materno  = trim($_POST['apellido_materno'] ?? '');
+    $nombres = trim($_POST['nombres'] ?? '');
+    $aPaterno = trim($_POST['aPaterno'] ?? '');
+    $aMaterno = trim($_POST['aMaterno'] ?? '');
     $telefono = trim($_POST['telefono'] ?? '');
     $direccion = trim($_POST['direccion'] ?? '');
-    $sexo = $_POST['sexo'] ?? 'No especificado'; // por si luego agregas el campo
+    $sexo = 'No especificado'; // Campo opcional
 
-    // Validar campos mínimos
-    if (empty($nombre) || empty($paterno) || empty($telefono)) {
-        echo json_encode(['status' => 'error', 'message' => 'Faltan campos obligatorios']);
+    // Validación básica
+    if ($nombres === '' || $aPaterno === '' || $aMaterno === '' || $telefono === '' || $direccion === '') {
+        echo json_encode(['status' => 'error', 'message' => 'Faltan campos obligatorios.']);
         exit;
     }
 
-    try {
-        $pdo->beginTransaction();
-
-        // 1️⃣ Insertar en personas
-        $sqlPersona = "INSERT INTO personas (nombres, aPaterno, aMaterno, sexo)
-                       VALUES (:nombres, :aPaterno, :aMaterno, :sexo)";
-        $stmt1 = $pdo->prepare($sqlPersona);
-        $stmt1->execute([
-            ':nombres' => $nombre,
-            ':aPaterno' => $paterno,
-            ':aMaterno' => $materno,
-            ':sexo' => $sexo
-        ]);
-
-        // Obtener ID de persona creada
-        $id_persona = $pdo->lastInsertId();
-
-        // 2️⃣ Insertar en clientes
-        $sqlCliente = "INSERT INTO clientes (telefono, estatusCli, fk_persona)
-                       VALUES (:telefono, 'Activo', :fk_persona)";
-        $stmt2 = $pdo->prepare($sqlCliente);
-        $stmt2->execute([
-            ':telefono' => $telefono,
-            ':fk_persona' => $id_persona
-        ]);
-
-        $pdo->commit();
-
-        echo json_encode(['status' => 'ok', 'message' => 'Cliente registrado correctamente']);
-
-    } catch (PDOException $e) {
-        $pdo->rollBack();
-        echo json_encode(['status' => 'error', 'message' => 'Error al guardar cliente: ' . $e->getMessage()]);
+    // Validar longitud de campos
+    if (strlen($nombres) < 2 || strlen($nombres) > 50) {
+        echo json_encode(['status' => 'error', 'message' => 'El nombre debe tener entre 2 y 50 caracteres.']);
+        exit;
     }
+
+    if (strlen($aPaterno) < 2 || strlen($aPaterno) > 30) {
+        echo json_encode(['status' => 'error', 'message' => 'El apellido paterno debe tener entre 2 y 30 caracteres.']);
+        exit;
+    }
+
+    if (strlen($aMaterno) < 2 || strlen($aMaterno) > 30) {
+        echo json_encode(['status' => 'error', 'message' => 'El apellido materno debe tener entre 2 y 30 caracteres.']);
+        exit;
+    }
+
+    if (!preg_match('/^[0-9]{10}$/', $telefono)) {
+        echo json_encode(['status' => 'error', 'message' => 'El teléfono debe contener exactamente 10 dígitos.']);
+        exit;
+    }
+
+    if (strlen($direccion) < 10 || strlen($direccion) > 200) {
+        echo json_encode(['status' => 'error', 'message' => 'La dirección debe tener entre 10 y 200 caracteres.']);
+        exit;
+    }
+
+    // Transacción
+    $pdo->beginTransaction();
+
+    // 1️⃣ Insertar persona
+    $sqlPersona = "INSERT INTO personas (nombres, aPaterno, aMaterno, sexo)
+                   VALUES (:nombres, :aPaterno, :aMaterno, :sexo)";
+    $stmt1 = $pdo->prepare($sqlPersona);
+    $stmt1->execute([
+        ':nombres' => $nombres,
+        ':aPaterno' => $aPaterno,
+        ':aMaterno' => $aMaterno,
+        ':sexo' => $sexo
+    ]);
+    $id_persona = $pdo->lastInsertId();
+
+    // 2️⃣ Insertar cliente (estatusCli = 'Activo')
+    $sqlCliente = "INSERT INTO clientes (telefono, direccion, estatusCli, fk_persona)
+                   VALUES (:telefono, :direccion, 'Activo', :fk_persona)";
+    $stmt2 = $pdo->prepare($sqlCliente);
+    $stmt2->execute([
+        ':telefono' => $telefono,
+        ':direccion' => $direccion,
+        ':fk_persona' => $id_persona
+    ]);
+
+    $pdo->commit();
+
+    echo json_encode(['status' => 'success', 'message' => 'Cliente registrado exitosamente']);
+    exit;
+
+} catch (PDOException $e) {
+    $pdo->rollBack();
+    echo json_encode(['status' => 'error', 'message' => 'Error al guardar cliente: ' . $e->getMessage()]);
+    exit;
 }
 ?>
-
-
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultado del registro</title>
-    <link rel="stylesheet" href="css/estilo.css">
-</head>
-<body>
-
-<header class="navbar">
-    <div class="nav-left">
-        <img src="img/logo.png" alt="Logo" class="logo">
-        <a href="nuevo_cliente.php">Registrar nuevo cliente</a>
-        <a href="index.php">Historial de registros</a>
-        <a href="#">Crear nuevo pedido</a>
-    </div>
-    <div class="nav-right">
-        <button class="btn-cerrar">Cerrar sesión</button>
-    </div>
-</header>
-
-<main class="contenedor-form">
-    <div class="mensaje-confirmacion">
-        <?php if ($clienteCreado): ?>
-            <h2>¡Cliente creado correctamente!</h2>
-            <p>El cliente <strong><?= htmlspecialchars($nombre) ?> <?= htmlspecialchars($apellido_paterno) ?></strong> ha sido registrado con éxito.</p>
-            <a href="index.php" class="btn-aceptar">Aceptar</a>
-        <?php else: ?>
-            <h2>⚠️ Error al crear el cliente</h2>
-            <p>Por favor, completa todos los campos requeridos.</p>
-            <a href="nuevo_cliente.php" class="btn-cancelar">Regresar</a>
-        <?php endif; ?>
-    </div>
-</main>
-
-</body>
-</html>

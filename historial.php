@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once 'navbar.php';
 require_once 'auth.php';
 
 // Consulta de todos los pedidos con los datos del cliente y servicio
@@ -36,36 +37,6 @@ try {
 </head>
 <body>
 
-<header class="navbar">
-    <div class="nav-left">
-        <a href="index.php"><img src="img/logo.png" alt="Logo" class="logo"></a>
-        <a href="nuevo_cliente.php">Registrar nuevo cliente</a>
-        <a href="historial.php">Historial de registros</a>
-        <a href="nuevo_pedido.php">Crear nuevo pedido</a>
-        <a href="nueva_prenda.php">Registrar nueva prenda</a>
-    </div>
-    <div class="nav-right">
-        <div class="user-info">
-            <div class="user-icon">
-                <?= strtoupper(substr($_SESSION['usuario_nombre'] ?? 'U', 0, 1)) ?>
-            </div>
-            <span class="user-name">
-                <?= htmlspecialchars($_SESSION['usuario_nombre_completo'] ?? $_SESSION['usuario_nombre']) ?>
-            </span>
-        </div>
-        <button class="btn-cerrar" onclick="cerrarSesion()">
-            <span class="logout-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    <polyline points="16,17 21,12 16,7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
-            </span>
-            Cerrar sesión
-        </button>
-    </div>
-</header>
-
 <main>
     <h1>Historial de pedidos</h1>
 
@@ -92,12 +63,10 @@ try {
                             <td><?= htmlspecialchars($pedido['tipo_ropa']) ?></td>
                             <td><?= htmlspecialchars($pedido['tipoEntrega']) ?></td>
                             <td>
-                                <?php if (strtolower($pedido['estatusPedido']) === 'pendiente'): ?>
-                                    <span class="estatus-pendiente">Pendiente</span>
-                                <?php elseif (strtolower($pedido['estatusPedido']) === 'entregado'): ?>
+                                <?php if ($pedido['estatusPedido'] === 0): ?>
+                                    <span class="estatus-pendiente"><?= $prenda['estatusPedido'] = 'Pendiente' ?></span>
+                                <?php elseif ($pedido['estatusPedido'] === 'entregado'): ?>
                                     <span class="estatus-entregado">Entregado</span>
-                                <?php else: ?>
-                                    <span class="estatus-pendiente"><?= htmlspecialchars($pedido['estatusPedido']) ?></span>
                                 <?php endif; ?>
                             </td>
                             <td>$<?= number_format($pedido['totalPedido'], 2) ?></td>

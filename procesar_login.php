@@ -252,7 +252,7 @@ try {
     echo json_encode([
         'status' => 'success',
         'message' => '¡Bienvenido ' . ($usuarioData['nombres'] ?? $usuario) . '!',
-        'redirect' => 'index.php',
+        'redirect' => 'historial.php',
         'user' => [
             'id' => $usuarioData['pk_usuario'],
             'nombre' => $nombreCompleto,

@@ -7,7 +7,7 @@ try {
                 c.pk_cliente AS id_cliente,
                 p.nombres,
                 p.aPaterno,
-                p.aMaterno,
+                p.aMaterno, 
                 c.telefono,
                 c.estatusCli,
                 DATE_FORMAT(cast(cast(c.pk_cliente as unsigned) as datetime), '%d/%m/%Y %H:%i') as fecha_registro
@@ -40,6 +40,7 @@ try {
         <a href="nuevo_cliente.php">Registrar nuevo cliente</a>
         <a href="historial.php">Historial de registros</a>
         <a href="nuevo_pedido.php">Crear nuevo pedido</a>
+        <a href="nueva_prenda.php">Registrar nueva prenda</a>
     </div>
     <div class="nav-right">
         <div class="user-info">

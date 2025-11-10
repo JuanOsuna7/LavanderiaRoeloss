@@ -21,6 +21,7 @@ try {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Registrar Tipo de Ropa</title>
 <link rel="stylesheet" href="estilos.css">
+<script src="custom-alerts.js"></script>
 </head>
 <body>
 
@@ -96,11 +97,11 @@ document.getElementById("formTipoRopa").addEventListener("submit", async functio
             document.getElementById("modalExito").style.display = "flex";
             this.reset();
         } else {
-            alert("Error: " + data.message);
+            showError("Error: " + data.message);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert("Error de conexión");
+        showError("Error de conexión");
     }
 });
 
@@ -109,8 +110,10 @@ document.getElementById("btnCerrarModal").addEventListener("click", () => {
     window.location.href = "listaPrendas.php";
 });
 
-function cerrarSesion() {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+async function cerrarSesion() {
+    const confirmed = await customConfirm('¿Estás seguro de que deseas cerrar sesión?', 'Confirmar cierre de sesión');
+    
+    if (confirmed) {
         window.location.href = 'logout.php';
     }
 }

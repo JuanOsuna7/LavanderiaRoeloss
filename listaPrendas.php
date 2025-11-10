@@ -20,6 +20,7 @@ try {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Prendas Registradas</title>
 <link rel="stylesheet" href="estilos.css">
+<script src="custom-alerts.js"></script>
 </head>
 <body>
 
@@ -87,24 +88,32 @@ function editarPedido(id) {
 
 // 🔹 Eliminar pedido
 async function eliminarPedido(id) {
-    if (confirm("¿Desea eliminar el pedido?")) {
-        const resp = await fetch("eliminar_pedido.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: "id=" + id
-        });
-        const data = await resp.json();
-        if (data.status === "ok") {
-            alert("¡Pedido eliminado correctamente!");
-            location.reload();
-        } else {
-            alert("Error: " + data.message);
+    const confirmed = await customConfirm("¿Desea eliminar el pedido?", "Confirmar eliminación");
+    
+    if (confirmed) {
+        try {
+            const resp = await fetch("eliminar_pedido.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "id=" + id
+            });
+            const data = await resp.json();
+            if (data.status === "ok") {
+                showSuccess("¡Pedido eliminado correctamente!");
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showError("Error: " + data.message);
+            }
+        } catch (error) {
+            showError("Error de conexión. Por favor, intenta nuevamente.");
         }
     }
 }
 
-function cerrarSesion() {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+async function cerrarSesion() {
+    const confirmed = await customConfirm('¿Estás seguro de que deseas cerrar sesión?', 'Confirmar cierre de sesión');
+    
+    if (confirmed) {
         window.location.href = 'logout.php';
     }
 }

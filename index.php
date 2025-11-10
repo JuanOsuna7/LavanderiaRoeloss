@@ -41,8 +41,10 @@ require_once 'navbar.php';
 </main>
 
 <script>
-function cerrarSesion() {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+async function cerrarSesion() {
+    const confirmed = await customConfirm('¿Estás seguro de que deseas cerrar sesión?', 'Confirmar cierre de sesión');
+    
+    if (confirmed) {
         window.location.href = 'logout.php';
     }
 }

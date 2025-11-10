@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - Lavandería Roeloss</title>
     <link rel="stylesheet" href="login.css">
+    <style>
+        /* Transición suave para la alerta de logout */
+        .alert {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+    </style>
 </head>
 <body>
     <div class="fondo-ilustrado"></div>
@@ -26,7 +32,7 @@
 
         <!-- Mensaje de logout exitoso -->
         <?php if (isset($_GET['logout']) && $_GET['logout'] == 1): ?>
-        <div class="alert success show">
+        <div id="logoutAlert" class="alert success show">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 8px; vertical-align: middle;">
                 <polyline points="20,6 9,17 4,12"/>
             </svg>
@@ -239,6 +245,24 @@
         // Efecto de enfoque automático
         window.addEventListener('load', function() {
             usuario.focus();
+            
+            // Ocultar automáticamente la alerta de logout después de 4 segundos
+            const logoutAlert = document.getElementById('logoutAlert');
+            if (logoutAlert) {
+                setTimeout(function() {
+                    logoutAlert.style.opacity = '0';
+                    logoutAlert.style.transform = 'translateY(-20px)';
+                    setTimeout(function() {
+                        logoutAlert.style.display = 'none';
+                        // Limpiar la URL removiendo el parámetro logout
+                        if (window.location.search.includes('logout=1')) {
+                            const url = new URL(window.location);
+                            url.searchParams.delete('logout');
+                            window.history.replaceState({}, document.title, url.pathname);
+                        }
+                    }, 300); // Esperar a que termine la transición
+                }, 4000); // 4 segundos
+            }
         });
 
         // Prevenir envío con Enter cuando hay errores

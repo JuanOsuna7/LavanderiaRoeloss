@@ -1,25 +1,6 @@
 <?php
 require_once 'config.php';
 require_once 'auth.php';
-
-try {
-    $sql = "SELECT 
-                c.pk_cliente AS id_cliente,
-                p.nombres,
-                p.aPaterno,
-                p.aMaterno, 
-                c.telefono,
-                c.estatusCli,
-                DATE_FORMAT(cast(cast(c.pk_cliente as unsigned) as datetime), '%d/%m/%Y %H:%i') as fecha_registro
-            FROM clientes c
-            INNER JOIN personas p ON c.fk_persona = p.pk_persona
-            ORDER BY c.pk_cliente DESC
-            LIMIT 5";
-    $stmt = $pdo->query($sql);
-    $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Error al consultar los clientes: " . $e->getMessage());
-}
 ?>
 
 <!DOCTYPE html>
@@ -27,61 +8,55 @@ try {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link rel="stylesheet" href="estilos.css">
-    <script src="custom-alerts.js"></script>
+    <link rel="stylesheet" href="<?= BASE_URL ?>estilos.css">
+    <script src="<?= BASE_URL ?>custom-alerts.js"></script>
+
 </head>
 
 <body>
 <div class="fondo-ilustrado"></div>
 
 <header class="navbar">
-    <div class="nav-left">
-        <a href="index.php"><img src="img/logo.png" alt="Logo" class="logo"></a>
-        
-        <!-- Sección Clientes -->
-        <div class="nav-dropdown">
-            <a href="#" class="nav-dropdown-toggle">
-                Clientes
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6,9 12,15 18,9"></polyline>
-                </svg>
-            </a>
-            <div class="nav-dropdown-menu">
-                <a href="index.php">Ver todos los clientes</a>
-                <a href="nuevo_cliente.php">Registrar nuevo cliente</a>
-                <a href="nuevo_cliente.php">Registrar nuevo clientesssss</a>
+<div class="nav-left">
+    <a href="<?= BASE_URL ?>controllers/cliente_controller.php?action=list" class="nav-logo">
+        <img src="<?= BASE_URL ?>img/logo.png" alt="Logo" class="logo">
+    </a>
 
-            </div>
-        </div>
-
-        <!-- Sección Pedidos -->
-        <div class="nav-dropdown">
-            <a href="#" class="nav-dropdown-toggle">
-                Pedidos
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6,9 12,15 18,9"></polyline>
-                </svg>
-            </a>
-            <div class="nav-dropdown-menu">
-                <a href="historial.php">Historial de pedidos</a>
-                <a href="nuevo_pedido.php">Crear nuevo pedido</a>
-            </div>
-        </div>
-
-        <!-- Sección Prendas -->
-        <div class="nav-dropdown">
-            <a href="#" class="nav-dropdown-toggle">
-                Prendas
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6,9 12,15 18,9"></polyline>
-                </svg>
-            </a>
-            <div class="nav-dropdown-menu">
-                <a href="listaPrendas.php">Lista de prendas</a>
-                <a href="nueva_prenda.php">Registrar nueva prenda</a>
-            </div>
+    <div class="nav-dropdown">
+        <a href="#" class="nav-dropdown-toggle">Clientes</a>
+        <div class="nav-dropdown-menu">
+            <a href="<?= BASE_URL ?>controllers/cliente_controller.php?action=list">Ver todos los clientes</a>
+            <!-- <a href="<?= BASE_URL ?>views/index.php">Ver todos los clientes</a> -->
+            <a href="<?= BASE_URL ?>views/nuevo_cliente.php">Registrar nuevo cliente</a>
         </div>
     </div>
+
+    <div class="nav-dropdown">
+        <a href="#" class="nav-dropdown-toggle">Pedidos</a>
+        <div class="nav-dropdown-menu">
+            <a href="<?= BASE_URL ?>controllers/pedido_controller.php?action=list">Historial de pedidos</a>
+            <!-- <a href="<?= BASE_URL ?>views/historial.php">Historial de pedidos</a> -->
+            <a href="<?= BASE_URL ?>views/nuevo_pedido.php">Crear nuevo pedido</a>
+        </div>
+    </div>
+
+    <div class="nav-dropdown">
+        <a href="#" class="nav-dropdown-toggle">Prendas</a>
+        <div class="nav-dropdown-menu">
+            <a href="<?= BASE_URL ?>controllers/prenda_controller.php?action=list">Lista de prendas</a>
+            <!-- <a href="<?= BASE_URL ?>listaPrendas.php">Lista de prendas</a> -->
+            <a href="<?= BASE_URL ?>views/nueva_prenda.php">Registrar nueva prenda</a>
+        </div>
+    </div>
+
+    <div class="nav-dropdown">
+        <a href="#" class="nav-dropdown-toggle">Usuarios</a>
+        <div class="nav-dropdown-menu">
+            <a href="<?= BASE_URL ?>controllers/user_controller.php?action=list">Lista de usuarios</a>
+            <a href="<?= BASE_URL ?>views/nuevo_usuario.php">Registrar nuevo usuario</a>
+        </div>
+    </div>
+</div>
     <div class="nav-right">
         <div class="user-info">
             <div class="user-icon">
@@ -141,4 +116,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+async function cerrarSesion() {
+    // Use customConfirm from custom-alerts.js if available
+    try {
+        const confirmed = await customConfirm('¿Estás seguro de que deseas cerrar sesión?', 'Confirmar cierre de sesión');
+        if (confirmed) {
+            window.location.href = 'logout.php';
+        }
+    } catch (e) {
+        // Fallback simple confirm
+        if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+            window.location.href = 'logout.php';
+        }
+    }
+}
 </script>

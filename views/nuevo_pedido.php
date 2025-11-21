@@ -1,61 +1,5 @@
 <?php
-require_once 'config.php';
-require_once 'auth.php';
-require_once 'navbar.php';
-
-// Verificar que se reciba un ID válido
-$pedidoId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-if (!$pedidoId) {
-    header('Location: historial.php');
-    exit;
-}
-
-// Obtener datos del pedido
-try {
-    $stmt = $pdo->prepare("
-        SELECT 
-            p.pk_pedido,
-            p.fk_cliente,
-            p.tipoEntrega,
-            p.estatusPedido,
-            p.totalPedido,
-            p.peso_total_kg,
-            p.fechaDeRecibo,
-            CONCAT(per.nombres, ' ', per.aPaterno, ' ', per.aMaterno) AS nombreCliente
-        FROM pedidos p
-        INNER JOIN clientes c ON p.fk_cliente = c.pk_cliente
-        INNER JOIN personas per ON c.fk_persona = per.pk_persona
-        WHERE p.pk_pedido = ?
-    ");
-    $stmt->execute([$pedidoId]);
-    $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$pedido) {
-        header('Location: historial.php');
-        exit;
-    }
-    
-    // Obtener items del pedido
-    $stmt = $pdo->prepare("
-        SELECT 
-            ip.pk_item_pedido,
-            ip.fk_tipo_prenda,
-            ip.peso_kg,
-            ip.precio_unitario,
-            ip.subtotal,
-            tp.nombre_tipo,
-            tp.descripcion
-        FROM items_pedido ip
-        INNER JOIN tipos_prenda tp ON ip.fk_tipo_prenda = tp.pk_tipo_prenda
-        WHERE ip.fk_pedido = ?
-        ORDER BY tp.nombre_tipo
-    ");
-    $stmt->execute([$pedidoId]);
-    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-} catch (PDOException $e) {
-    die("Error al consultar el pedido: " . $e->getMessage());
-}
+require_once __DIR__ . '/../navbar.php';
 
 // Obtener lista de clientes para búsqueda
 try {
@@ -77,6 +21,12 @@ try {
 } catch (PDOException $e) {
     die("Error al consultar tipos de prendas: " . $e->getMessage());
 }
+
+// Generar ID temporal para el pedido en sesión
+if (!isset($_SESSION['pedido_temp_id'])) {
+    $_SESSION['pedido_temp_id'] = 'temp_' . time() . '_' . uniqid();
+    $_SESSION['pedido_items'] = [];
+}
 ?>
 
 <!DOCTYPE html>
@@ -84,28 +34,28 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar pedido #<?= $pedido['pk_pedido'] ?> - Lavandería Roeloss</title>
-    <link rel="stylesheet" href="estilos.css">
-    <script src="custom-alerts.js"></script>
+    <title>Registrar nuevo pedido - Lavandería Roeloss</title>
+</head>
 </head>
 <body>
 
 <div class="nuevo-pedido-container">
     <!-- CUADRO 2: Resumen de prendas (IZQUIERDA) -->
     <div class="cuadro-resumen">
-        <h2 class="resumen-titulo">Prendas del pedido #<?= $pedido['pk_pedido'] ?></h2>
+        <h2 class="resumen-titulo">Prendas del pedido</h2>
         <div id="listaPrendas">
-            <!-- Se llenará con JavaScript -->
+            <div class="mensaje-vacio">
+                No hay prendas agregadas.<br>
+                Haz clic en "Agregar prenda" para comenzar.
+            </div>
         </div>
     </div>
 
     <!-- CUADRO 1: Formulario principal (DERECHA) -->
     <div class="cuadro-principal">
-        <h1 class="titulo-principal">Editar pedido #<?= $pedido['pk_pedido'] ?></h1>
+        <h1 class="titulo-principal">Registrar nuevo pedido</h1>
 
         <form id="formPedido">
-            <input type="hidden" id="pedidoId" value="<?= $pedido['pk_pedido'] ?>">
-            
             <!-- Búsqueda de cliente -->
             <div class="form-group">
                 <label class="form-label">Cliente:</label>
@@ -114,10 +64,8 @@ try {
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
-                    <input type="text" id="buscarCliente" class="busqueda-input" 
-                           value="<?= htmlspecialchars($pedido['nombreCliente']) ?>" autocomplete="off">
-                    <input type="hidden" id="clienteSeleccionado" name="cliente" 
-                           value="<?= $pedido['fk_cliente'] ?>" required>
+                    <input type="text" id="buscarCliente" class="busqueda-input" placeholder="Buscar cliente..." autocomplete="off">
+                    <input type="hidden" id="clienteSeleccionado" name="cliente" required>
                     <div id="resultadosBusqueda" class="resultados-busqueda"></div>
                 </div>
             </div>
@@ -127,29 +75,15 @@ try {
                 <label class="form-label" for="tipoEntrega">Tipo de entrega:</label>
                 <select id="tipoEntrega" name="tipoEntrega" class="form-select" required>
                     <option value="">Seleccione tipo de entrega</option>
-                    <option value="Entrega a domicilio" <?= $pedido['tipoEntrega'] === 'Entrega a domicilio' ? 'selected' : '' ?>>
-                        Entrega a domicilio
-                    </option>
-                    <option value="Recoger en sucursal" <?= $pedido['tipoEntrega'] === 'Recoger en sucursal' ? 'selected' : '' ?>>
-                        Recoger en sucursal
-                    </option>
-                </select>
-            </div>
-
-            <!-- Estado del pedido -->
-            <div class="form-group">
-                <label class="form-label" for="estatusPedido">Estado del pedido:</label>
-                <select id="estatusPedido" name="estatusPedido" class="form-select" required>
-                    <option value="1" <?= $pedido['estatusPedido'] == 1 ? 'selected' : '' ?>>Pendiente</option>
-                    <option value="2" <?= $pedido['estatusPedido'] == 2 ? 'selected' : '' ?>>Entregado</option>
-                    <option value="0" <?= $pedido['estatusPedido'] == 0 ? 'selected' : '' ?>>Cancelado</option>
+                    <option value="Entrega a domicilio">Entrega a domicilio</option>
+                    <option value="Recoger en sucursal">Recoger en sucursal</option>
                 </select>
             </div>
 
             <!-- Total del pedido -->
             <div class="total-display">
                 <div class="total-label">Total del pedido:</div>
-                <input type="text" class="total-input" id="totalPedido" value="$<?= number_format($pedido['totalPedido'], 2) ?> MXN" readonly>
+                <input type="text" class="total-input" id="totalPedido" value="$0.00 MXN" readonly>
             </div>
 
             <!-- Botón para agregar prendas -->
@@ -163,13 +97,13 @@ try {
 
             <!-- Botones de acción -->
             <div class="botones-accion">
-                <button type="submit" class="btn-registrar" id="btnActualizar">
+                <button type="submit" class="btn-registrar" id="btnRegistrar" disabled>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 8px; vertical-align: middle;">
                         <path d="M20 6L9 17l-5-5"></path>
                     </svg>
-                    Actualizar pedido
+                    Registrar pedido
                 </button>
-                <button type="button" class="btn-cancelar" onclick="cancelarEdicion()">
+                <button type="button" class="btn-cancelar" onclick="cancelarPedido()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 8px; vertical-align: middle;">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -178,6 +112,24 @@ try {
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal de éxito -->
+<div class="modal" id="modalExito" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <div class="modal-header">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"/>
+            </svg>
+        </div>
+        <div class="modal-body">
+            <h2>¡Pedido registrado correctamente!</h2>
+            <p>El pedido ha sido guardado exitosamente en el sistema.</p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-primary" id="btnCerrarModal">Aceptar</button>
+        </div>
     </div>
 </div>
 
@@ -241,12 +193,8 @@ try {
 // Datos desde PHP
 const clientes = <?= json_encode($clientes) ?>;
 const tiposPrendas = <?= json_encode($tipos_prendas) ?>;
-const itemsOriginales = <?= json_encode($items) ?>;
 let prendaItems = [];
-let clienteSeleccionado = {
-    pk_cliente: <?= $pedido['fk_cliente'] ?>,
-    nombreCompleto: "<?= htmlspecialchars($pedido['nombreCliente']) ?>"
-};
+let clienteSeleccionado = null;
 
 // Elementos del formulario
 const buscarClienteInput = document.getElementById('buscarCliente');
@@ -254,7 +202,7 @@ const clienteSeleccionadoInput = document.getElementById('clienteSeleccionado');
 const resultadosBusqueda = document.getElementById('resultadosBusqueda');
 const listaPrendas = document.getElementById('listaPrendas');
 const totalPedido = document.getElementById('totalPedido');
-const btnActualizar = document.getElementById('btnActualizar');
+const btnRegistrar = document.getElementById('btnRegistrar');
 const btnAgregarPrenda = document.getElementById('btnAgregarPrenda');
 
 // Modal agregar prenda
@@ -265,27 +213,6 @@ const precioUnitarioInput = document.getElementById('precioUnitario');
 const subtotalModalInput = document.getElementById('subtotalModal');
 const btnAgregarModal = document.getElementById('btnAgregarModal');
 const prendaInfo = document.getElementById('prendaInfo');
-
-// Cargar datos existentes
-function cargarDatosExistentes() {
-    itemsOriginales.forEach((item, index) => {
-        const prenda = {
-            id: Date.now() + index,
-            itemId: item.pk_item_pedido,
-            tipoPrenda: item.fk_tipo_prenda,
-            nombreTipoPrenda: item.nombre_tipo,
-            peso: parseFloat(item.peso_kg),
-            precioUnitario: parseFloat(item.precio_unitario),
-            subtotal: parseFloat(item.subtotal),
-            esExistente: true
-        };
-        prendaItems.push(prenda);
-    });
-    
-    actualizarListaPrendas();
-    calcularTotal();
-    validarFormulario();
-}
 
 // Buscar clientes
 function buscarClientes(texto) {
@@ -326,8 +253,7 @@ function seleccionarCliente(cliente) {
 function agregarPrendaAlPedido(prenda) {
     const nuevaPrenda = {
         ...prenda,
-        id: Date.now(),
-        esExistente: false
+        id: Date.now() // ID único temporal
     };
     
     prendaItems.push(nuevaPrenda);
@@ -408,7 +334,8 @@ function actualizarListaPrendas() {
     if (prendaItems.length === 0) {
         listaPrendas.innerHTML = `
             <div class="mensaje-vacio">
-                No hay prendas en el pedido.
+                No hay prendas agregadas.<br>
+                Haz clic en "Agregar prenda" para comenzar.
             </div>
         `;
         return;
@@ -420,10 +347,7 @@ function actualizarListaPrendas() {
         const itemHTML = `
             <div class="item-prenda">
                 <div class="item-header">
-                    <div class="item-numero">
-                        Prenda ${index + 1} 
-                        ${prenda.esExistente ? '<span style="color: #6b7280; font-size: 0.8rem;">(Existente)</span>' : '<span style="color: #10b981; font-size: 0.8rem;">(Nueva)</span>'}
-                    </div>
+                    <div class="item-numero">Prenda ${index + 1}</div>
                     <button type="button" class="btn-eliminar-item" onclick="eliminarPrenda(${prenda.id})">
                         ×
                     </button>
@@ -463,13 +387,25 @@ function validarFormulario() {
     const tipoEntregaValido = document.getElementById('tipoEntrega').value !== '';
     const prendasValidas = prendaItems.length > 0;
     
-    btnActualizar.disabled = !(clienteValido && tipoEntregaValido && prendasValidas);
+    btnRegistrar.disabled = !(clienteValido && tipoEntregaValido && prendasValidas);
 }
 
-async function cancelarEdicion() {
-    const confirmed = await customConfirm('¿Está seguro de que desea cancelar la edición? Se perderán los cambios no guardados.', 'Confirmar cancelación');
+async function cancelarPedido() {
+    const confirmed = await customConfirm('¿Está seguro de que desea cancelar el pedido? Se perderán todos los datos ingresados.', 'Confirmar cancelación');
     
     if (confirmed) {
+        // Limpiar todo
+        prendaItems = [];
+        clienteSeleccionado = null;
+        
+        document.getElementById('formPedido').reset();
+        buscarClienteInput.value = '';
+        clienteSeleccionadoInput.value = '';
+        
+        actualizarListaPrendas();
+        calcularTotal();
+        validarFormulario();
+        
         window.location.href = 'historial.php';
     }
 }
@@ -497,34 +433,31 @@ document.addEventListener('click', function(e) {
 });
 
 document.getElementById('tipoEntrega').addEventListener('change', validarFormulario);
-document.getElementById('estatusPedido').addEventListener('change', validarFormulario);
 
 btnAgregarPrenda.addEventListener('click', function() {
     abrirModalPrenda();
 });
 
-// Actualizar pedido
+// Guardar pedido
 document.getElementById('formPedido').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     if (prendaItems.length === 0) {
-        showError('Debe tener al menos una prenda en el pedido.');
+        showError('Debe agregar al menos una prenda al pedido.');
         return;
     }
     
     const formData = new FormData();
-    formData.append('pedidoId', document.getElementById('pedidoId').value);
     formData.append('cliente', clienteSeleccionadoInput.value);
     formData.append('tipoEntrega', document.getElementById('tipoEntrega').value);
-    formData.append('estatusPedido', document.getElementById('estatusPedido').value);
     formData.append('total', prendaItems.reduce((sum, prenda) => sum + prenda.subtotal, 0).toFixed(2));
     formData.append('prendas', JSON.stringify(prendaItems));
     
     try {
-        btnActualizar.disabled = true;
-        btnActualizar.textContent = 'Actualizando...';
+        btnRegistrar.disabled = true;
+        btnRegistrar.textContent = 'Guardando...';
         
-        const response = await fetch('actualizar_pedido.php', {
+        const response = await fetch('<?= BASE_URL ?>controllers/pedido_controller.php?action=create', {
             method: 'POST',
             body: formData
         });
@@ -532,21 +465,28 @@ document.getElementById('formPedido').addEventListener('submit', async function(
         const data = await response.json();
         
         if (data.status === 'ok') {
-            showSuccess('¡Pedido actualizado correctamente!');
-            setTimeout(() => {
-                window.location.href = 'historial.php';
-            }, 1500);
+            // Limpiar sesión
+            prendaItems = [];
+            clienteSeleccionado = null;
+            
+            document.getElementById('modalExito').style.display = 'flex';
         } else {
-            showError('Error al actualizar el pedido: ' + data.message);
-            btnActualizar.disabled = false;
-            btnActualizar.textContent = 'Actualizar pedido';
+            showError('Error al guardar el pedido: ' + data.message);
+            btnRegistrar.disabled = false;
+            btnRegistrar.textContent = 'Registrar pedido';
         }
     } catch (error) {
         console.error('Error:', error);
         showError('Error de conexión. Por favor, intenta nuevamente.');
-        btnActualizar.disabled = false;
-        btnActualizar.textContent = 'Actualizar pedido';
+        btnRegistrar.disabled = false;
+        btnRegistrar.textContent = 'Registrar pedido';
     }
+});
+
+// Modal success
+document.getElementById('btnCerrarModal').addEventListener('click', function() {
+    document.getElementById('modalExito').style.display = 'none';
+    window.location.href = '<?= BASE_URL ?>controllers/pedido_controller.php?action=list';
 });
 
 async function cerrarSesion() {
@@ -559,10 +499,9 @@ async function cerrarSesion() {
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
-    cargarDatosExistentes();
+    validarFormulario();
 });
 
-// Event listeners del modal
 tipoPrendaSelect.addEventListener('change', actualizarInfoPrenda);
 pesoModalInput.addEventListener('input', calcularSubtotalModal);
 

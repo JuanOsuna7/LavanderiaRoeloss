@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - Lavandería Roeloss</title>
-    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="../login.css">
     <style>
         /* Transición suave para la alerta de logout */
         .alert {
@@ -208,7 +208,7 @@
             try {
                 const formData = new FormData(this);
                 
-                const response = await fetch('procesar_login.php', {
+                const response = await fetch('../procesar_login.php', {
                     method: 'POST',
                     body: formData
                 });

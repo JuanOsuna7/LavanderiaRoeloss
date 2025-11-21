@@ -20,7 +20,8 @@ if (isset($_SESSION['usuario_id'])) {
     
     // Opcional: Registrar en base de datos
     try {
-        require_once 'config.php';
+        // require_once 'config.php';
+        require_once __DIR__ . '/../config.php';
         
         // Verificar si la tabla existe antes de intentar insertar
         $stmt = $pdo->query("SHOW TABLES LIKE 'intentos_login'");

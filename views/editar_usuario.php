@@ -1,7 +1,7 @@
 <?php
-require_once 'config.php';
-require_once 'auth.php';
-require_once 'navbar.php';
+// require_once 'config.php';
+// require_once 'auth.php';
+require_once __DIR__ . '/../navbar.php';
 
 $userId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$userId) {
@@ -83,7 +83,9 @@ try {
             </div>
 
             <div class="actions">
-                <a href="listaUsuarios.php" class="btn btn-secondary">Cancelar</a>
+                <a href="<?= BASE_URL ?>controllers/user_controller.php?action=list" class="btn btn-secondary">
+                    Cancelar
+                </a>
                 <button type="submit" class="btn btn-primary">Guardar cambios</button>
             </div>
         </form>
@@ -109,11 +111,14 @@ document.getElementById('formEditarUsuario').addEventListener('submit', async fu
     const form = new FormData(this);
 
     try {
-        const resp = await fetch('actualizar_usuario.php', { method: 'POST', body: form });
+         const resp = await fetch('<?= BASE_URL ?>controllers/user_controller.php?action=update', {
+        method: 'POST',
+        body: form
+    });
         const data = await resp.json();
         if (data.status === 'ok') {
             showSuccess(data.message || 'Usuario actualizado');
-            setTimeout(() => window.location.href = 'listaUsuarios.php', 1200);
+            setTimeout(() => window.location.href = "<?= BASE_URL ?>controllers/user_controller.php?action=list", 1200);
         } else {
             showError(data.message || 'Error al actualizar');
         }
@@ -122,6 +127,14 @@ document.getElementById('formEditarUsuario').addEventListener('submit', async fu
         showError('Error de conexión');
     }
 });
+
+async function cerrarSesion() {
+    const confirmed = await customConfirm('¿Estás seguro de que deseas cerrar sesión?', 'Confirmar cierre de sesión');
+    
+    if (confirmed) {
+        window.location.href = 'logout.php';
+    }
+}
 </script>
 </body>
 </html>

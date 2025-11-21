@@ -1,24 +1,23 @@
 <?php 
-    require_once 'navbar.php'; 
+    require_once __DIR__ . '/../navbar.php';
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar nuevo cliente</title>
-    <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
-
     <main>
         <div class="form-container">
-            <h1>Registrar nuevo usuario</h1>
+            <h1>Registrar nuevo cliente</h1>
             
             <!-- Mensajes de éxito/error -->
             <div id="mensaje" class="mensaje"></div>
 
-            <form id="usuarioForm">
+            <form id="clienteForm">
                 <div class="form-group">
                     <label for="nombres">Nombres:</label>
                     <input type="text" id="nombres" name="nombres" placeholder="Ingresa el nombre" 
@@ -45,28 +44,21 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="usuario">Usuario</label>
-                    <input type="text" id="usuario" name="usuario" required autocomplete="username">
-                    <div id="errorUsuario" class="error-message">
-                        El usuario es requerido
-                    </div>
+                    <label for="telefono">Teléfono:</label>
+                    <input type="tel" id="telefono" name="telefono" placeholder="10 dígitos" 
+                           pattern="[0-9]{10}" 
+                           title="Debe contener exactamente 10 dígitos"
+                           maxlength="10" 
+                           minlength="10" required>
                 </div>
 
                 <div class="form-group">
-                <label for="password">Contraseña</label>
-                <div class="password-container">
-                    <input type="password" id="password" name="password" required autocomplete="current-password">
-                    <span class="toggle-password" onclick="togglePassword()">
-                        <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                    </span>
+                    <label for="direccion">Dirección:</label>
+                    <textarea id="direccion" name="direccion" placeholder="Ingresa la dirección completa" 
+                              rows="3" 
+                              maxlength="200" 
+                              title="Máximo 200 caracteres" required></textarea>
                 </div>
-                <div id="errorPassword" class="error-message">
-                    La contraseña es requerida
-                </div>
-            </div>
 
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">
@@ -90,11 +82,19 @@
     <script>
         // Validaciones en tiempo real
         document.addEventListener('DOMContentLoaded', function() {
-            const pass = document.getElementById('password');
+            const telefono = document.getElementById('telefono');
             const nombres = document.getElementById('nombres');
             const aPaterno = document.getElementById('aPaterno');
             const aMaterno = document.getElementById('aMaterno');
-            const usuario = document.getElementById('usuario');
+            const direccion = document.getElementById('direccion');
+
+            // Validación para teléfono - solo números
+            telefono.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length > 10) {
+                    this.value = this.value.slice(0, 10);
+                }
+            });
 
             // Validación para nombres - solo letras y espacios
             nombres.addEventListener('input', function(e) {
@@ -114,48 +114,68 @@
                 });
             });
 
+            // Validación para dirección - límite de caracteres
+            direccion.addEventListener('input', function(e) {
+                if (this.value.length > 200) {
+                    this.value = this.value.slice(0, 200);
+                }
+            });
+
+            // Mostrar contador de caracteres para dirección
+            const contadorDireccion = document.createElement('small');
+            contadorDireccion.style.color = '#6b7280';
+            contadorDireccion.style.fontSize = '12px';
+            contadorDireccion.textContent = '0/200 caracteres';
+            direccion.parentNode.appendChild(contadorDireccion);
+
+            direccion.addEventListener('input', function() {
+                const length = this.value.length;
+                contadorDireccion.textContent = `${length}/200 caracteres`;
+                contadorDireccion.style.color = length > 180 ? '#ef4444' : '#6b7280';
+            });
         });
 
-        document.getElementById('usuarioForm').addEventListener('submit', async function(e) {
+        document.getElementById('clienteForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Validaciones adicionales antes del envío
-            const pass = document.getElementById('password').value;
+            const telefono = document.getElementById('telefono').value;
             const nombres = document.getElementById('nombres').value.trim();
             const aPaterno = document.getElementById('aPaterno').value.trim();
             const aMaterno = document.getElementById('aMaterno').value.trim();
-            const usuario = document.getElementById('usuario').value.trim();
+            const direccion = document.getElementById('direccion').value.trim();
+
+            // Validar que el teléfono tenga exactamente 10 dígitos
+            if (telefono.length !== 10 || !/^[0-9]{10}$/.test(telefono)) {
+                mostrarMensaje('El teléfono debe contener exactamente 10 dígitos', 'error');
+                return;
+            }
 
             // Validar que los nombres no estén vacíos después de trim
-            if (nombres.length < 4) {
-                mostrarMensaje('El nombre debe tener al menos 4 caracteres', 'error');
+            if (nombres.length < 2) {
+                mostrarMensaje('El nombre debe tener al menos 2 caracteres', 'error');
                 return;
             }
 
-            if (aPaterno.length < 4) {
-                mostrarMensaje('El apellido paterno debe tener al menos 4 caracteres', 'error');
+            if (aPaterno.length < 2) {
+                mostrarMensaje('El apellido paterno debe tener al menos 2 caracteres', 'error');
                 return;
             }
 
-            if (aMaterno.length < 4) {
-                mostrarMensaje('El apellido materno debe tener al menos 4 caracteres', 'error');
+            if (aMaterno.length < 2) {
+                mostrarMensaje('El apellido materno debe tener al menos 2 caracteres', 'error');
                 return;
             }
 
-            if (pass.length < 8) {
-                mostrarMensaje('La contraseña debe tener al menos 8 caracteres', 'error');
-                return;
-            }
-
-            if (usuario.length < 4) {
-                mostrarMensaje('El usuario debe tener al menos 4 caracteres', 'error');
+            if (direccion.length < 10) {
+                mostrarMensaje('La dirección debe tener al menos 10 caracteres', 'error');
                 return;
             }
             
             const formData = new FormData(this);
             
             try {
-                const response = await fetch('guardar_usuario.php', {
+                const response = await fetch('<?= BASE_URL ?>controllers/cliente_controller.php?action=create', {
                     method: 'POST',
                     body: formData
                 });
@@ -165,10 +185,13 @@
                 if (data.status === 'success') {
                     mostrarMensaje(data.message, 'exito');
                     this.reset();
+                    // Resetear contador
+                    const contador = this.querySelector('small');
+                    if (contador) contador.textContent = '0/200 caracteres';
                     
                     // Redireccionar al index después de 2 segundos
                     setTimeout(() => {
-                        window.location.href = 'index.php';
+                        window.location.href = '<?= BASE_URL ?>controllers/cliente_controller.php?action=list';
                     }, 2000);
                 } else {
                     mostrarMensaje(data.message, 'error');
@@ -199,34 +222,16 @@
             if (tipo === 'error') {
                 setTimeout(() => {
                     mensaje.style.display = 'none';
-                }, 50000);
-            }
-        }
-
-         function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.getElementById('eyeIcon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                // Cambiar a ícono de ojo cerrado
-                eyeIcon.innerHTML = `
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                `;
-            } else {
-                passwordInput.type = 'password';
-                // Cambiar a ícono de ojo abierto
-                eyeIcon.innerHTML = `
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                `;
+                }, 5000);
             }
         }
 
         function limpiarFormulario() {
-            document.getElementById('usuarioForm').reset();
+            document.getElementById('clienteForm').reset();
             document.getElementById('mensaje').style.display = 'none';
+            // Resetear contador
+            const contador = document.querySelector('small');
+            if (contador) contador.textContent = '0/200 caracteres';
         }
 
         async function cerrarSesion() {

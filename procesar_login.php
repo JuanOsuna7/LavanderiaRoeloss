@@ -239,20 +239,11 @@ try {
     // Configurar duración de sesión (termina al cerrar navegador)
     setcookie(session_name(), session_id(), 0, '/', '', false, true);
 
-    // Actualizar último login
-    try {
-        $updateLoginStmt = $pdo->prepare("UPDATE usuarios SET ultimo_login = NOW() WHERE pk_usuario = ?");
-        $updateLoginStmt->execute([$usuarioData['pk_usuario']]);
-    } catch (PDOException $e) {
-        // No fallar el login si no se puede actualizar ultimo_login
-        error_log("Error al actualizar ultimo_login: " . $e->getMessage());
-    }
-
     // Respuesta exitosa
     echo json_encode([
         'status' => 'success',
         'message' => '¡Bienvenido ' . ($usuarioData['nombres'] ?? $usuario) . '!',
-        'redirect' => 'historial.php',
+        'redirect' => '../controllers/pedido_controller.php?action=list',
         'user' => [
             'id' => $usuarioData['pk_usuario'],
             'nombre' => $nombreCompleto,

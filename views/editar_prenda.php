@@ -1,16 +1,25 @@
 <?php
-require_once 'config.php';
-require_once 'auth.php';
-require_once 'navbar.php';
+require_once __DIR__ . '/../navbar.php';
 
-// Obtener lista de clientes
+$prendaId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+if (!$prendaId) {
+    header('Location: listaPrendas.php');
+    exit;
+}
+
 try {
-    $clientes = $pdo->query("SELECT c.pk_cliente, CONCAT(p.nombres, ' ', p.aPaterno, ' ', p.aMaterno) AS nombreCompleto
-                              FROM clientes c
-                              INNER JOIN personas p ON c.fk_persona = p.pk_persona
-                              ORDER BY p.nombres ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare("
+        SELECT * FROM prendas WHERE pk_prenda = ?
+    ");
+    $stmt->execute([$prendaId]);
+    $prenda = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$prenda) {
+        header('Location: listaPrendas.php');
+        exit;
+    }
 } catch (PDOException $e) {
-    die("Error al consultar clientes: " . $e->getMessage());
+    die("Error al consultar la prenda: " . $e->getMessage());
 }
 ?>
 
@@ -19,7 +28,7 @@ try {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registrar Tipo de Ropa</title>
+<title>Editar Tipo de Ropa</title>
 <link rel="stylesheet" href="estilos.css">
 <script src="custom-alerts.js"></script>
 </head>
@@ -27,12 +36,12 @@ try {
 
 <main>
     <div class="form-container">
-        <h1>Registrar Tipo de Ropa</h1>
-
+        <h1>Editar Tipo de Ropa</h1>
         <form id="formTipoRopa">
+            <input type="hidden" id="prendaId" name="id" value="<?= htmlspecialchars($prendaId) ?>">
             <div class="form-group">
                 <label for="servicio">Nombre de la Prenda:</label>
-                <input type="text" id="nomPrenda" name="nomPrenda" placeholder="Ingresa el nombre de la prenda" 
+                <input type="text" id="nomPrenda" value="<?= htmlspecialchars($prenda['nombrePrenda']) ?>" name="nomPrenda" placeholder="Ingresa el nombre de la prenda" 
                            pattern="[A-Za-zÀ-ÿ\u00f1\u00d1\s]+" 
                            title="Solo se permiten letras y espacios"
                            maxlength="50" required>
@@ -40,7 +49,7 @@ try {
 
             <div class="form-group">
                 <label for="total">Precio ($):</label>
-                <input type="number" name="costoPrenda" id="costoPrenda" step="1" min="0" required>
+                <input type="number" name="costoPrenda" value="<?= htmlspecialchars($prenda['costoPrenda']) ?>" id="costoPrenda" step="1" min="0" required>
             </div>
 
             <div class="form-actions">
@@ -48,14 +57,14 @@ try {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 6L9 17l-5-5"/>
                     </svg>
-                    Registrar Prenda
+                    Editar Prenda
                 </button>
-                <a href="index.php" class="btn-secondary">
+                <a href="<?= BASE_URL ?>controllers/prenda_controller.php?action=list" class="btn-secondary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="19" y1="12" x2="5" y2="12"/>
                         <polyline points="12,19 5,12 12,5"/>
                     </svg>
-                    Cancelar
+                    Cancelar    
                 </a>
             </div>
         </form>
@@ -71,7 +80,7 @@ try {
             </svg>
         </div>
         <div class="modal-body">
-            <h2>Prenda registrada correctamente!</h2>
+            <h2>Prenda editada correctamente!</h2>
             <!-- <p>El pedido ha sido guardado exitosamente en el sistema.</p> -->
         </div>
         <div class="modal-actions">
@@ -87,7 +96,7 @@ document.getElementById("formTipoRopa").addEventListener("submit", async functio
     const formData = new FormData(this);
     
     try {
-        const resp = await fetch("guardar_prenda.php", {
+        const resp = await fetch('<?= BASE_URL ?>controllers/prenda_controller.php?action=update', {
             method: "POST",
             body: formData
         });
@@ -107,7 +116,7 @@ document.getElementById("formTipoRopa").addEventListener("submit", async functio
 
 document.getElementById("btnCerrarModal").addEventListener("click", () => {
     document.getElementById("modalExito").style.display = "none";
-    window.location.href = "listaPrendas.php";
+    window.location.href = "<?= BASE_URL ?>controllers/prenda_controller.php?action=list";
 });
 
 async function cerrarSesion() {

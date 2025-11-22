@@ -178,7 +178,7 @@ try {
 </div>
 
 <!-- Modal para agregar prenda -->
-<div class="modal-overlay" id="modalAgregarPrenda" style="display: none;">
+<div class="modal-overlay" id="modalAgregarPrenda">
     <div class="modal-content-prenda">
         <div class="modal-header-prenda">
             <h2>Agregar prenda al pedido</h2>
@@ -336,11 +336,11 @@ function agregarPrendaAlPedido(prenda) {
 function abrirModalPrenda() {
     cargarTiposPrendas();
     limpiarFormularioModal();
-    modalAgregarPrenda.style.display = 'flex';
+    modalAgregarPrenda.classList.add('show');
 }
 
 function cerrarModalPrenda() {
-    modalAgregarPrenda.style.display = 'none';
+    modalAgregarPrenda.classList.remove('show');
     limpiarFormularioModal();
 }
 

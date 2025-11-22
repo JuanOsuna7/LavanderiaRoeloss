@@ -5,6 +5,23 @@ require_once __DIR__ . '/../navbar.php';
 <main>
     <h1>Clientes registrados</h1>
 
+    <!-- Buscador de clientes -->
+    <div class="buscador-container">
+        <div class="busqueda-cliente-lista">
+            <svg class="busqueda-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="buscarClienteLista" class="busqueda-input" placeholder="Buscar por nombre o apellido..." autocomplete="off">
+            <button type="button" id="limpiarBusqueda" class="btn-limpiar" title="Limpiar búsqueda" style="display: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     <div class="top-actions">
         <button id="showAll" class="btn-filter active">Todos</button>
         <button id="showActive" class="btn-filter">Activos</button>
@@ -108,22 +125,89 @@ async function toggleEstatus(id, current) {
 const btnAll = document.getElementById('showAll');
 const btnActive = document.getElementById('showActive');
 const btnInactive = document.getElementById('showInactive');
+const buscarClienteInput = document.getElementById('buscarClienteLista');
+const limpiarBusquedaBtn = document.getElementById('limpiarBusqueda');
 
-btnAll.addEventListener('click', () => { setActiveFilter(btnAll); filterBy(null); });
-btnActive.addEventListener('click', () => { setActiveFilter(btnActive); filterBy(1); });
-btnInactive.addEventListener('click', () => { setActiveFilter(btnInactive); filterBy(0); });
+// Variables para el filtrado
+let filtroActual = null; // null=todos, 1=activos, 0=inactivos
+let textoBusqueda = '';
+
+// Función para buscar clientes
+function buscarClientes(texto) {
+    textoBusqueda = texto.toLowerCase().trim();
+    
+    // Mostrar/ocultar botón limpiar
+    if (textoBusqueda.length > 0) {
+        limpiarBusquedaBtn.style.display = 'flex';
+    } else {
+        limpiarBusquedaBtn.style.display = 'none';
+    }
+    
+    aplicarFiltros();
+}
+
+// Función para aplicar tanto filtros de estado como búsqueda
+function aplicarFiltros() {
+    const rows = document.querySelectorAll('#tablaCliente tbody tr');
+    
+    rows.forEach(row => {
+        let mostrar = true;
+        
+        // Aplicar filtro de estado
+        if (filtroActual !== null) {
+            const estatus = row.dataset.estatus;
+            if (estatus != String(filtroActual)) {
+                mostrar = false;
+            }
+        }
+        
+        // Aplicar filtro de búsqueda
+        if (mostrar && textoBusqueda.length > 0) {
+            const nombreCompleto = row.cells[1].textContent.toLowerCase();
+            
+            // Buscar en todo el nombre completo (nombres y apellidos)
+            if (!nombreCompleto.includes(textoBusqueda)) {
+                mostrar = false;
+            }
+        }
+        
+        row.style.display = mostrar ? '' : 'none';
+    });
+}
+
+// Event listeners para el buscador
+buscarClienteInput.addEventListener('input', function() {
+    buscarClientes(this.value);
+});
+
+limpiarBusquedaBtn.addEventListener('click', function() {
+    buscarClienteInput.value = '';
+    buscarClientes('');
+    buscarClienteInput.focus();
+});
+
+// Event listeners para los botones de filtro
+btnAll.addEventListener('click', () => { 
+    setActiveFilter(btnAll); 
+    filtroActual = null;
+    aplicarFiltros();
+});
+
+btnActive.addEventListener('click', () => { 
+    setActiveFilter(btnActive); 
+    filtroActual = 1;
+    aplicarFiltros();
+});
+
+btnInactive.addEventListener('click', () => { 
+    setActiveFilter(btnInactive); 
+    filtroActual = 0;
+    aplicarFiltros();
+});
 
 function setActiveFilter(button) {
     [btnAll, btnActive, btnInactive].forEach(b => b.classList.remove('active'));
     button.classList.add('active');
-}
-
-function filterBy(est) {
-    const rows = document.querySelectorAll('#tablaCliente tbody tr');
-    rows.forEach(r => {
-        if (est === null) { r.style.display = ''; return; }
-        r.style.display = (r.dataset.estatus == String(est)) ? '' : 'none';
-    });
 }
 
 

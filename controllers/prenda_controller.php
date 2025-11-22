@@ -46,8 +46,8 @@ if ($action === 'update') {
     }
 
     // Validar longitud y caracteres (letras y espacios, incluyendo acentos)
-    if (mb_strlen($nombre) > 50 || !preg_match('/^[A-Za-zÀ-ÿñÑ\s]+$/u', $nombre)) {
-        echo json_encode(['status' => 'error', 'message' => 'Nombre de prenda inválido. Solo letras y espacios, máximo 50 caracteres.']);
+    if (mb_strlen($nombre) > 100 || !preg_match('/^[A-Za-zÀ-ÿñÑ\s]+$/u', $nombre)) {
+        echo json_encode(['status' => 'error', 'message' => 'Nombre de tipo de prenda inválido. Solo letras y espacios, máximo 100 caracteres.']);
         exit;
     }
 
@@ -58,6 +58,8 @@ if ($action === 'update') {
     }
 
     $costo = floatval($costoRaw);
+    $descripcion = $_POST['descripcion'] ?? null;
+    
     if ($costo < 0) {
         echo json_encode(['status' => 'error', 'message' => 'El costo no puede ser negativo.']);
         exit;
@@ -66,7 +68,7 @@ if ($action === 'update') {
     try {
         $pdo->beginTransaction();
 
-        $filasPer = Prenda::actualizarPrenda($nombre, $costo, $id);
+        $filasPer = Prenda::actualizarPrenda($nombre, $costo, $id, $descripcion);
 
         $pdo->commit();
 
@@ -98,16 +100,17 @@ if ($action === 'create') {
     try {
         $tRopa = $_POST['nomPrenda'] ?? '';
         $costoRopa = $_POST['costoPrenda'] ?? '';
+        $descripcion = $_POST['descripcion'] ?? null;
 
     if (empty($tRopa) || empty($costoRopa)) {
         echo json_encode(['status' => 'error', 'message' => 'Faltan campos obligatorios.']);
         exit;
     }
 
-        // Transaction: insert into personas then usuarios
+        // Transaction: insert into tipos_prenda
         $pdo->beginTransaction();
 
-        $id_persona = Prenda::createPrenda($tRopa, $costoRopa);
+        $id_prenda = Prenda::createPrenda($tRopa, $costoRopa, $descripcion);
 
         $pdo->commit();
 

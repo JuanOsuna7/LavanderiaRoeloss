@@ -9,7 +9,7 @@ if (!$prendaId) {
 
 try {
     $stmt = $pdo->prepare("
-        SELECT * FROM prendas WHERE pk_prenda = ?
+        SELECT * FROM tipos_prenda WHERE pk_tipo_prenda = ?
     ");
     $stmt->execute([$prendaId]);
     $prenda = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -28,7 +28,7 @@ try {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editar Tipo de Ropa</title>
+<title>Editar Tipo de Prenda</title>
 <link rel="stylesheet" href="estilos.css">
 <script src="custom-alerts.js"></script>
 </head>
@@ -36,20 +36,26 @@ try {
 
 <main>
     <div class="form-container">
-        <h1>Editar Tipo de Ropa</h1>
+        <h1>Editar Tipo de Prenda</h1>
         <form id="formTipoRopa">
             <input type="hidden" id="prendaId" name="id" value="<?= htmlspecialchars($prendaId) ?>">
             <div class="form-group">
-                <label for="servicio">Nombre de la Prenda:</label>
-                <input type="text" id="nomPrenda" value="<?= htmlspecialchars($prenda['nombrePrenda']) ?>" name="nomPrenda" placeholder="Ingresa el nombre de la prenda" 
+                <label for="servicio">Nombre del Tipo:</label>
+                <input type="text" id="nomPrenda" value="<?= htmlspecialchars($prenda['nombre_tipo']) ?>" name="nomPrenda" placeholder="Ingresa el nombre del tipo de prenda" 
                            pattern="[A-Za-zÀ-ÿ\u00f1\u00d1\s]+" 
                            title="Solo se permiten letras y espacios"
-                           maxlength="50" required>
+                           maxlength="100" required>
             </div>
 
             <div class="form-group">
-                <label for="total">Precio ($):</label>
-                <input type="number" name="costoPrenda" value="<?= htmlspecialchars($prenda['costoPrenda']) ?>" id="costoPrenda" step="1" min="0" required>
+                <label for="total">Precio por Kg ($):</label>
+                <input type="number" name="costoPrenda" value="<?= htmlspecialchars($prenda['precio_por_kg']) ?>" id="costoPrenda" step="0.01" min="0" required>
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion">Descripción:</label>
+                <textarea id="descripcion" name="descripcion" placeholder="Descripción del tipo de prenda (opcional)" 
+                          rows="3" maxlength="255"><?= htmlspecialchars($prenda['descripcion'] ?? '') ?></textarea>
             </div>
 
             <div class="form-actions">
@@ -57,7 +63,7 @@ try {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 6L9 17l-5-5"/>
                     </svg>
-                    Editar Prenda
+                    Actualizar Tipo de Prenda
                 </button>
                 <a href="<?= BASE_URL ?>controllers/prenda_controller.php?action=list" class="btn-secondary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -103,7 +109,7 @@ document.getElementById("formTipoRopa").addEventListener("submit", async functio
         const data = await resp.json();
 
         if (data.status === "ok") {
-            document.getElementById("modalExito").style.display = "flex";
+            document.getElementById("modalExito").classList.add("show");
             this.reset();
         } else {
             showError("Error: " + data.message);
@@ -115,7 +121,7 @@ document.getElementById("formTipoRopa").addEventListener("submit", async functio
 });
 
 document.getElementById("btnCerrarModal").addEventListener("click", () => {
-    document.getElementById("modalExito").style.display = "none";
+    document.getElementById("modalExito").classList.remove("show");
     window.location.href = "<?= BASE_URL ?>controllers/prenda_controller.php?action=list";
 });
 

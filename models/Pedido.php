@@ -56,7 +56,7 @@ class Pedido {
                 GROUP_CONCAT(
                     CONCAT(tp.nombre_tipo, ' (', ip.peso_kg, ' kg)')
                     ORDER BY tp.nombre_tipo
-                    SEPARATOR ', '
+                    SEPARATOR '|'
                 ) AS tipos_prenda
             FROM pedidos p
             INNER JOIN clientes c ON p.fk_cliente = c.pk_cliente

@@ -1,4 +1,5 @@
 <?php
+define('BASE_URL', 'http://localhost/LavanderiaRoeloss/');
 $host = 'localhost';
 $dbname = 'lavanderiaroeloss'; // 🔹 cambia por el nombre real de tu BD
 $username = 'root';

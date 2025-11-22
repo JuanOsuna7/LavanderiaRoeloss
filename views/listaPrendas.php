@@ -15,19 +15,49 @@ require_once __DIR__ . '/../navbar.php';
 <main>
     <h1>Prendas Registradas</h1>
 
-    <div class="top-actions">
-        <button id="showAll" class="btn-filter active">Todos</button>
-        <button id="showActive" class="btn-filter">Activos</button>
-        <button id="showInactive" class="btn-filter">Inactivos</button>
+    <!-- Buscador de tipos de prenda -->
+    <div class="buscador-container">
+        <div class="busqueda-cliente-lista">
+            <svg class="busqueda-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="buscarPrendaLista" class="busqueda-input" placeholder="Buscar tipo de prenda..." autocomplete="off">
+            <button type="button" id="limpiarBusqueda" class="btn-limpiar" title="Limpiar búsqueda" style="display: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="top-actions with-actions">
+        <div class="filters-section">
+            <button id="showAll" class="btn-filter active">Todos</button>
+            <button id="showActive" class="btn-filter">Activos</button>
+            <button id="showInactive" class="btn-filter">Inactivos</button>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="<?= BASE_URL ?>views/nueva_prenda.php" class="btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Agregar Nuevo Tipo
+            </a>
+        </div>
     </div>
 
     <div class="tabla-container">
         <table id="tablaPrendas">
             <thead>
                 <tr>
-                    <th>ID Prenda</th>
-                    <th>Nombre Prenda</th>
-                    <th>Costo</th>
+                    <th>ID</th>
+                    <th>Nombre del Tipo</th>
+                    <th>Precio por Kg</th>
+                    <th>Descripción</th>
                     <th>Estatus</th>
                     <th>Acciones</th>
                 </tr>
@@ -35,26 +65,27 @@ require_once __DIR__ . '/../navbar.php';
             <tbody>
                 <?php if (!empty($prendas)): ?>
                     <?php foreach ($prendas as $prenda): ?>
-                        <tr data-estatus="<?= $prenda['estatusPrenda'] ?>">
-                            <td><?= htmlspecialchars($prenda['pk_prenda']) ?></td>
-                            <td><?= htmlspecialchars($prenda['nombrePrenda']) ?></td>
-                             <td>$<?= number_format($prenda['costoPrenda'], 2) ?></td>
+                        <tr data-estatus="<?= $prenda['estatus'] ?>">
+                            <td><?= htmlspecialchars($prenda['pk_tipo_prenda']) ?></td>
+                            <td><?= htmlspecialchars($prenda['nombre_tipo']) ?></td>
+                            <td>$<?= number_format($prenda['precio_por_kg'], 2) ?> / kg</td>
+                            <td><?= htmlspecialchars($prenda['descripcion'] ?? 'Sin descripción') ?></td>
                             <td>
-                                <?php if ($prenda['estatusPrenda'] === 1): ?>
+                                <?php if ($prenda['estatus'] === 1): ?>
                                     <span class="estatus-activo">Activa</span>
-                                <?php elseif ($prenda['estatusPrenda'] === 0): ?>
+                                <?php elseif ($prenda['estatus'] === 0): ?>
                                     <span class="estatus-inactivo">Inactiva</span>
                                  <?php endif; ?>
                             </td>
                             <td class="acciones">
-                                <button title="Editar" onclick="editarPedido(<?= $prenda['pk_prenda'] ?>)">
+                                <button title="Editar" onclick="editarPedido(<?= $prenda['pk_tipo_prenda'] ?>)">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                     </svg>
                                 </button>
-                                <?php if ($prenda['estatusPrenda'] == 1): ?>
-                                    <button class="action-btn destructive" title="Dar de baja prenda" onclick="toggleEstatus(<?= $prenda['pk_prenda'] ?>, <?= $prenda['estatusPrenda'] ?>)">
+                                <?php if ($prenda['estatus'] == 1): ?>
+                                    <button class="action-btn destructive" title="Dar de baja prenda" onclick="toggleEstatus(<?= $prenda['pk_tipo_prenda'] ?>, <?= $prenda['estatus'] ?>)">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
                                             <polyline points="3 6 5 6 21 6"></polyline>
                                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -63,7 +94,7 @@ require_once __DIR__ . '/../navbar.php';
                                         </svg>
                                     </button>
                                 <?php else: ?>
-                                    <button class="action-btn activate" title="Activar prenda" onclick="toggleEstatus(<?= $prenda['pk_prenda'] ?>, <?= $prenda['estatusPrenda'] ?>)">
+                                    <button class="action-btn activate" title="Activar prenda" onclick="toggleEstatus(<?= $prenda['pk_tipo_prenda'] ?>, <?= $prenda['estatus'] ?>)">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M20 6L9 17l-5-5"></path>
                                         </svg>
@@ -119,22 +150,89 @@ async function toggleEstatus(id, current) {
 const btnAll = document.getElementById('showAll');
 const btnActive = document.getElementById('showActive');
 const btnInactive = document.getElementById('showInactive');
+const buscarPrendaInput = document.getElementById('buscarPrendaLista');
+const limpiarBusquedaBtn = document.getElementById('limpiarBusqueda');
 
-btnAll.addEventListener('click', () => { setActiveFilter(btnAll); filterBy(null); });
-btnActive.addEventListener('click', () => { setActiveFilter(btnActive); filterBy(1); });
-btnInactive.addEventListener('click', () => { setActiveFilter(btnInactive); filterBy(0); });
+// Variables para el filtrado
+let filtroActual = null; // null=todos, 1=activos, 0=inactivos
+let textoBusqueda = '';
+
+// Función para buscar prendas
+function buscarPrendas(texto) {
+    textoBusqueda = texto.toLowerCase().trim();
+    
+    // Mostrar/ocultar botón limpiar
+    if (textoBusqueda.length > 0) {
+        limpiarBusquedaBtn.style.display = 'flex';
+    } else {
+        limpiarBusquedaBtn.style.display = 'none';
+    }
+    
+    aplicarFiltros();
+}
+
+// Función para aplicar tanto filtros de estado como búsqueda
+function aplicarFiltros() {
+    const rows = document.querySelectorAll('#tablaPrendas tbody tr');
+    
+    rows.forEach(row => {
+        let mostrar = true;
+        
+        // Aplicar filtro de estado
+        if (filtroActual !== null) {
+            const estatus = row.dataset.estatus;
+            if (estatus != String(filtroActual)) {
+                mostrar = false;
+            }
+        }
+        
+        // Aplicar filtro de búsqueda
+        if (mostrar && textoBusqueda.length > 0) {
+            const nombreTipo = row.cells[1].textContent.toLowerCase();
+            
+            // Buscar en el nombre del tipo de prenda
+            if (!nombreTipo.includes(textoBusqueda)) {
+                mostrar = false;
+            }
+        }
+        
+        row.style.display = mostrar ? '' : 'none';
+    });
+}
+
+// Event listeners para el buscador
+buscarPrendaInput.addEventListener('input', function() {
+    buscarPrendas(this.value);
+});
+
+limpiarBusquedaBtn.addEventListener('click', function() {
+    buscarPrendaInput.value = '';
+    buscarPrendas('');
+    buscarPrendaInput.focus();
+});
+
+// Event listeners para los botones de filtro
+btnAll.addEventListener('click', () => { 
+    setActiveFilter(btnAll); 
+    filtroActual = null;
+    aplicarFiltros();
+});
+
+btnActive.addEventListener('click', () => { 
+    setActiveFilter(btnActive); 
+    filtroActual = 1;
+    aplicarFiltros();
+});
+
+btnInactive.addEventListener('click', () => { 
+    setActiveFilter(btnInactive); 
+    filtroActual = 0;
+    aplicarFiltros();
+});
 
 function setActiveFilter(button) {
     [btnAll, btnActive, btnInactive].forEach(b => b.classList.remove('active'));
     button.classList.add('active');
-}
-
-function filterBy(est) {
-    const rows = document.querySelectorAll('#tablaPrendas tbody tr');
-    rows.forEach(r => {
-        if (est === null) { r.style.display = ''; return; }
-        r.style.display = (r.dataset.estatus == String(est)) ? '' : 'none';
-    });
 }
 
 

@@ -148,9 +148,6 @@
             if (value === '') {
                 showError(errorPassword);
                 errorPassword.textContent = 'La contraseña es requerida';
-            } else if (value.length < 6) {
-                showError(errorPassword);
-                errorPassword.textContent = 'La contraseña debe tener al menos 6 caracteres';
             } else {
                 showError(errorPassword, false);
             }
@@ -191,10 +188,6 @@
             if (password.value === '') {
                 showError(errorPassword);
                 errorPassword.textContent = 'La contraseña es requerida';
-                isValid = false;
-            } else if (password.value.length < 6) {
-                showError(errorPassword);
-                errorPassword.textContent = 'La contraseña debe tener al menos 6 caracteres';
                 isValid = false;
             }
 

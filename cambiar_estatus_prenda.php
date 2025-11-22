@@ -17,11 +17,11 @@ if (!$id || ($estatus !== 0 && $estatus !== 1)) {
 }
 
 try {
-    $stmt = $pdo->prepare("UPDATE prendas SET estatusPrenda = :estatus WHERE pk_prenda = :id");
+    $stmt = $pdo->prepare("UPDATE tipos_prenda SET estatus = :estatus WHERE pk_tipo_prenda = :id");
     $stmt->execute([':estatus' => $estatus, ':id' => $id]);
 
     if ($stmt->rowCount() === 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Prenda no encontrada o sin cambios.']);
+        echo json_encode(['status' => 'error', 'message' => 'Tipo de prenda no encontrada o sin cambios.']);
         exit;
     }
 

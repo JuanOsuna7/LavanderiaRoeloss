@@ -7,6 +7,72 @@ require_once __DIR__ . '/../models/Pedido.php';
 // Simple router for actions: 'create' (POST) and 'list' (GET)
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
+// Endpoint para obtener datos del pedido para el ticket
+if ($action === 'get') {
+    header('Content-Type: application/json; charset=utf-8');
+    
+    $pedidoId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+    
+    if (!$pedidoId) {
+        echo json_encode(['status' => 'error', 'message' => 'ID de pedido inválido']);
+        exit;
+    }
+    
+    try {
+        // Obtener datos del pedido con cliente y prendas
+        $sql = "SELECT 
+                    p.pk_pedido,
+                    p.fechaDeRecibo,
+                    p.totalPedido,
+                    p.peso_total_kg,
+                    p.tipoEntrega,
+                    p.estatusPedido,
+                    CONCAT(per.nombres, ' ', per.aPaterno, ' ', per.aMaterno) AS nombreCliente,
+                    c.telefono,
+                    c.direccion
+                FROM pedidos p
+                INNER JOIN clientes c ON p.fk_cliente = c.pk_cliente
+                INNER JOIN personas per ON c.fk_persona = per.pk_persona
+                WHERE p.pk_pedido = ?";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$pedidoId]);
+        $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$pedido) {
+            echo json_encode(['status' => 'error', 'message' => 'Pedido no encontrado']);
+            exit;
+        }
+        
+        // Obtener prendas del pedido
+        $sqlPrendas = "SELECT 
+                           ip.peso_kg,
+                           ip.precio_unitario,
+                           ip.subtotal,
+                           tp.nombre_tipo
+                       FROM items_pedido ip
+                       INNER JOIN tipos_prenda tp ON ip.fk_tipo_prenda = tp.pk_tipo_prenda
+                       WHERE ip.fk_pedido = ?
+                       ORDER BY tp.nombre_tipo";
+        
+        $stmtPrendas = $pdo->prepare($sqlPrendas);
+        $stmtPrendas->execute([$pedidoId]);
+        $prendas = $stmtPrendas->fetchAll(PDO::FETCH_ASSOC);
+        
+        $pedido['prendas'] = $prendas;
+        
+        echo json_encode([
+            'status' => 'ok',
+            'data' => $pedido
+        ]);
+        exit;
+        
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Error al obtener pedido: ' . $e->getMessage()]);
+        exit;
+    }
+}
+
 //Condicional para listar
 if ($action === 'list') {
     try {

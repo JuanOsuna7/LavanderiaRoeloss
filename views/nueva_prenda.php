@@ -116,7 +116,7 @@ async function cerrarSesion() {
     const confirmed = await customConfirm('¿Estás seguro de que deseas cerrar sesión?', 'Confirmar cierre de sesión');
     
     if (confirmed) {
-        window.location.href = 'logout.php';
+        window.location.href = "<?= BASE_URL ?>views/logout.php";
     }
 }
 </script>

@@ -321,35 +321,222 @@ input[type="text"]:focus, input[type="password"]:focus {
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN MEJORADO
    ============================================ */
-@media (max-width: 480px) {
+
+/* TABLETS */
+@media (max-width: 768px) and (min-width: 481px) {
     .login-container {
-        margin: 20px;
-        padding: 30px 25px;
+        margin: 30px 20px;
+        padding: 40px 35px;
+        max-width: 450px;
     }
 
     .logo {
-        width: 60px;
-        height: 60px;
-        font-size: 20px;
+        width: 70px;
+        height: 70px;
+        font-size: 24px;
     }
 
     h1 {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
+        margin-bottom: 8px;
     }
     
     .subtitle {
-        font-size: 0.9rem;
+        font-size: 1rem;
+        margin-bottom: 35px;
+    }
+    
+    .input-group {
+        margin-bottom: 25px;
+    }
+    
+    input[type="text"], input[type="password"] {
+        padding: 14px 16px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+    
+    .btn-login {
+        padding: 14px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+    
+    .error-message {
+        font-size: 14px;
+    }
+}
+
+/* MÓVILES GRANDES - 481px a 768px se mantiene el estilo de tablet */
+
+/* MÓVILES PEQUEÑOS */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .login-container {
+        margin: 15px 10px;
+        padding: 25px 20px;
+        max-width: none;
+        min-height: auto;
+        border-radius: 12px;
+    }
+
+    .logo {
+        width: 55px;
+        height: 55px;
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+        margin-bottom: 6px;
+        line-height: 1.3;
+    }
+    
+    .subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 25px;
+        line-height: 1.4;
+    }
+    
+    .input-group {
+        margin-bottom: 20px;
+    }
+    
+    input[type="text"], input[type="password"] {
+        padding: 12px 16px;
+        font-size: 16px; /* Evita zoom en iOS */
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    input[type="text"]:focus, input[type="password"]:focus {
+        outline: none;
+        border-color: var(--azul-medio);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .btn-login {
+        padding: 14px 20px;
+        font-size: 15px;
+        border-radius: 8px;
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .error-message {
+        font-size: 13px;
+        padding: 10px 15px;
+        border-radius: 6px;
+    }
+    
+    .loading {
+        font-size: 13px;
+    }
+    
+    .footer {
+        font-size: 11px;
+        margin-top: 20px;
+    }
+}
+
+/* MÓVILES MUY PEQUEÑOS */
+@media (max-width: 360px) {
+    .login-container {
+        margin: 10px 5px;
+        padding: 20px 15px;
+        border-radius: 8px;
+    }
+
+    .logo {
+        width: 50px;
+        height: 50px;
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+
+    h1 {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+    }
+    
+    .subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 20px;
+    }
+    
+    .input-group {
+        margin-bottom: 15px;
     }
     
     input[type="text"], input[type="password"] {
         padding: 10px 14px;
+        font-size: 16px;
+        border-radius: 6px;
+    }
+    
+    .btn-login {
+        padding: 12px 16px;
+        font-size: 14px;
+        border-radius: 6px;
+    }
+    
+    .error-message {
+        font-size: 12px;
+        padding: 8px 12px;
+        border-radius: 4px;
+    }
+}
+
+/* ORIENTACIÓN HORIZONTAL EN MÓVILES */
+@media (max-height: 500px) and (orientation: landscape) {
+    .login-container {
+        margin: 10px auto;
+        padding: 15px 25px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .logo {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    h1 {
+        font-size: 1.1rem;
+        margin-bottom: 3px;
+    }
+    
+    .subtitle {
+        font-size: 0.75rem;
+        margin-bottom: 15px;
+    }
+    
+    .input-group {
+        margin-bottom: 12px;
+    }
+    
+    input[type="text"], input[type="password"] {
+        padding: 8px 12px;
         font-size: 14px;
     }
     
     .btn-login {
-        padding: 12px;
-        font-size: 15px;
+        padding: 10px 16px;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+    
+    .footer {
+        font-size: 10px;
+        margin-top: 10px;
     }
 }

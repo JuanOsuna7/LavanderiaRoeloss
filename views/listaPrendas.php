@@ -125,7 +125,7 @@ async function toggleEstatus(id, current) {
     console.log('toggleEstatus llamado con id:', id, 'y current:', current);
     
     const nueva = current == 1 ? 0 : 1;
-    const confirmed = await customConfirm((nueva==0 ? '¿Desea dar de baja al usuario?' : '¿Desea activar al usuario?'), 'Confirmar');
+    const confirmed = await customConfirm((nueva==0 ? '¿Desea dar de baja la prenda?' : '¿Desea activar la prenda?'), 'Confirmar');
     if (!confirmed) return;
 
     try {

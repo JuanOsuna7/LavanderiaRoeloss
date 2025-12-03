@@ -20,7 +20,7 @@ class Prenda {
     public static function listaPrendas()
     {
         global $pdo;
-        $sql = "SELECT pk_tipo_prenda, nombre_tipo, precio_por_kg, descripcion, estatus FROM tipos_prenda ORDER BY nombre_tipo ASC";
+        $sql = "SELECT pk_tipo_prenda, nombre_tipo, precio_por_kg, descripcion, estatus FROM tipos_prenda ORDER BY pk_tipo_prenda ASC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
